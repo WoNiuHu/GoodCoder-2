@@ -119,6 +119,11 @@ class WebSpider(object):
             time.sleep(float(CRAWL_INTERVAL))
 
 
+class Queue(object):
+    def __init__(self):
+        pass
+
+
 if __name__ == "__main__":
     CONFIGFILE = "spider.conf"
     config = ConfigParser.ConfigParser()
