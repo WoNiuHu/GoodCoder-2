@@ -31,7 +31,7 @@ class WebSpider(object):
             html = self.handle_utf8_page()
             print "not gzipped file~"
 
-        # print html
+        # print html 
         return html
 
     def handle_utf8_page(self):
@@ -63,11 +63,11 @@ class WebSpider(object):
         data = response.read()
         data = StringIO.StringIO(data)
 
-        #其实，现在很多网页为了提高浏览器端用户的访问速度，和搜索引擎爬虫抓取的速度，都在使用gzip压缩。
+        #现在很多网页为了提高浏览器端用户的访问速度，和搜索引擎爬虫抓取的速度，都在使用gzip压缩。
         gzip_file = gzip.GzipFile(fileobj=data)
         html = gzip_file.read()
         #fromEncoding 原网页的编码，当然也可以写一个自动获取网页编码传进来更好
-        html = bs4.BeautifulSoup(html, from_encoding='GB18030')
+        html = bs4.BeautifulSoup(html, from_encoding='GB18030') #gbk is also OK
         # print "内容是:", html
         # print "str(html)内容是:", str(html)
         print "gzipped page type is:", type(html)#<class 'bs4.BeautifulSoup'>
