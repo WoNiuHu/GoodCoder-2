@@ -10,8 +10,11 @@ import re
 
 
 class Queue(object):
-    def __init__(self, tmp_list=[]):
-        self.queue = tmp_list
+    def __init__(self):
+        self.queue = []
+
+    def get_queue(self):
+        return self.queue
 
     #入队
     def push(self, v):
@@ -20,7 +23,10 @@ class Queue(object):
 
     #出队
     def pop(self):
-        return self.queue.pop(0) #pop method returns the removed object from the list.
+        if not self.is_empty():
+            element = self.queue.pop(0)
+            print "出队的元素: ", element
+            return element #pop method returns the removed object from the list.
 
     def is_empty(self):
         return len(self.queue) == 0
@@ -36,18 +42,21 @@ class Queue(object):
 
 
 class LinkQueue(object):
-    def __init__(self, tmp_list=[]):
+    def __init__(self):
         self.visited = Queue()
-        self.unvisited = Queue(tmp_list)
+        self.unvisited = Queue()
 
     def get_visited_url(self):
-        return self.visited
+        return self.visited.get_queue()
 
     def get_unvisited_url(self):
-        return self.unvisited
+        return self.unvisited.get_queue()
 
     #添加到访问过的url队列中
     def add_visited_url(self, url):
+        # url = self.unvisited.pop()
+        #url 是从unvisited 队列里出来的
+        print "添加到访问过的队列:",
         self.visited.push(url)
 
     #为什么要删除访问过的url呢??
@@ -59,6 +68,9 @@ class LinkQueue(object):
         if url != " " and not self.visited.is_exist(url) and not self.unvisited.is_exist(url):
             # self.unvisited.insert(0, url)
             self.unvisited.push(url)
+
+    def pop_unvisited_url(self):
+        return self.unvisited.pop()
 
     def get_visited_url_length(self):
         return self.visited.get_length()
@@ -88,11 +100,11 @@ def get_page_source(url):
         html = gzip_file.read()
         #fromEncoding 原网页的编码，当然也可以写一个自动获取网页编码传进来更好
         page = bs4.BeautifulSoup(html, from_encoding='gbk')
-        print type(page) #<class 'bs4.BeautifulSoup'>
+        print url, type(page) #<class 'bs4.BeautifulSoup'>
         #折打tag,里面是排好的网页源代码
         # print page
     except Exception, e:
-        print e
+        print "当前网页是:", url, e
         # request = urllib2.Request(url, headers=headers)
         response = urllib2.urlopen(request)
         page = response.read()
@@ -111,14 +123,17 @@ def get_hyperlinks(url):
         for link in soup.find_all('a'):
             # print link
             try:
-                if str(link.get('href')).find("http://") != -1:
+                if str(link.get('href')).find("http://") != -1 or str(link.get('href')).find("https://") != -1:
                     urls.append(link.get('href'))
                     # print link.get('href')
             except Exception, err:
                 print type(err),
                 print err #'ascii' codec can't encode characters in position 33-34: ordinal not in range(128)
-
-        print "超链接长度: ", len(urls)
+        #去重
+        urls = list(set(urls))
+        print "获取的超链接长度: ", len(urls)
+        for url in urls:
+            print url
         return urls
 
 if __name__ == "__main__":
@@ -126,12 +141,23 @@ if __name__ == "__main__":
     # get_page_source(urls[0])
 
     #用种子初始化unvisited队列
-    link_queue = LinkQueue(seeds)
+    link_queue = LinkQueue()
     for seed in seeds:
+        link_queue.add_unvisited_url(seed)
+    print "initial, unvisited queue length: ", link_queue.get_unvisited_url_length()
+    # for seed in link_queue.get_unvisited_url():
+    count = 0
+    # for seed in ["http://www.baidu.com", "http://www.sina.com.cn"]: #构造深度为1的爬取
+    for seed in seeds:
+        count += 1
+        print "遍历第", count, "次"
         urls = get_hyperlinks(seed)
+        link_queue.add_visited_url(link_queue.pop_unvisited_url())#todo dowload_img
+        print "添加到未访问的队列:"
         for url in urls:
+            # seeds.append(url)
             link_queue.add_unvisited_url(url)
 
-        print "till now", link_queue.get_unvisited_url_length()
+        print "till now, unvisited queue length: ", link_queue.get_unvisited_url_length()
 
 

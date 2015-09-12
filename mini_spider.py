@@ -7,6 +7,7 @@ import ConfigParser
 import os
 import re
 import bs4
+import HTMLParser
 import time
 import gzip
 import StringIO
@@ -130,19 +131,24 @@ class WebSpider(object):
             # file_name = img_url.split("/")[-1]
             file_name = img_url
             output_dir = config.get("spider", "output_directory")
+            output_dir = output_dir.split('/')[1]
             output_path = lambda p: os.path.abspath(os.path.join(os.path.dirname(__file__), output_dir, p))
             #新建目录存放爬取的图片
             child_dir = self.url.strip().split('//')[1]
-            output_sec_dir = output_path(child_dir) #/Users/will/Android/Python/good_coder/output/baidu
+            output_sec_dir = output_path(child_dir) #/Users/will/Android/Python/good_coder/output/www.baidu.com
             print output_sec_dir
             if not os.path.exists(output_sec_dir):
                 os.mkdir(output_sec_dir)
                 print "新建文件夹~"
-
-            if not os.path.exists(os.path.abspath(os.path.join(output_sec_dir, file_name))):
+            file_name = file_name.replace(':', "")
+            file_name = file_name.replace('/', "_")
+            filename = os.path.join(output_sec_dir, file_name)
+            print "当前路径:", os.path.dirname(__file__)
+            if not os.path.exists(filename):
+                print filename
+                print img_url
                 #下载文件
-                urllib.urlretrieve(img_url, os.path.abspath(os.path.join(output_sec_dir, file_name)))
-                # urllib.urlretrieve(img_url, file_name)
+                urllib.urlretrieve(img_url, filename)
             else:
                 print file_name + " 已经存在了~"
             CRAWL_INTERVAL = config.get("spider", "crawl_interval")
@@ -235,8 +241,8 @@ if __name__ == "__main__":
 
     # log.init_log("./log/mini_spider")
     # logging.info("Start~")
-    print "当前处理url: ",url_arr[0]
-    web_spider = WebSpider(url_arr[0])
+    print "当前处理url: ",url_arr[1]
+    web_spider = WebSpider(url_arr[1])
     # html = web_spider.get_page_source()
 
     #如果为https请求就再请求一次
