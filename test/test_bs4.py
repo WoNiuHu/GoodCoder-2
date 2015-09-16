@@ -1,4 +1,4 @@
-#coding:utf-8
+# -*- coding: utf-8 -*-
 #this way is good.
 # http://www.sina.com.cn的网页能显示出来了. 解决了中文乱码
 
@@ -19,7 +19,7 @@ class Queue(object):
     #入队
     def push(self, v):
         self.queue.append(v)
-        print "enqueue:", v
+        # print "enqueue:", v
 
     #出队
     def pop(self):
@@ -100,7 +100,7 @@ def get_page_source(url):
         html = gzip_file.read()
         #fromEncoding 原网页的编码，当然也可以写一个自动获取网页编码传进来更好
         page = bs4.BeautifulSoup(html, from_encoding='gbk')
-        print url, type(page) #<class 'bs4.BeautifulSoup'>
+        print "gbk里的网页是：", url, type(page) #<class 'bs4.BeautifulSoup'>
         #折打tag,里面是排好的网页源代码
         # print page
     except Exception, e:
@@ -132,12 +132,12 @@ def get_hyperlinks(url):
         #去重
         urls = list(set(urls))
         print "获取的超链接长度: ", len(urls)
-        for url in urls:
-            print url
+        # for url in urls:
+        #     print url
         return urls
 
 if __name__ == "__main__":
-    seeds = ["http://www.baidu.com", "http://www.sina.com.cn"]
+    seeds = ["http://www.baidu.com", "http://www.sina.com.cn", "http://map.baidu.com"]
     # get_page_source(urls[0])
 
     #用种子初始化unvisited队列
@@ -152,12 +152,22 @@ if __name__ == "__main__":
         count += 1
         print "遍历第", count, "次"
         urls = get_hyperlinks(seed)
-        link_queue.add_visited_url(link_queue.pop_unvisited_url())#todo dowload_img
+        # link_queue.add_visited_url(link_queue.pop_unvisited_url())#todo dowload_img
         print "添加到未访问的队列:"
         for url in urls:
             # seeds.append(url)
             link_queue.add_unvisited_url(url)
 
         print "till now, unvisited queue length: ", link_queue.get_unvisited_url_length()
+
+    print "访问队列："
+    print "长度：", link_queue.get_visited_url_length()
+    for url in link_queue.get_visited_url():
+        print url
+
+    print "未访问队列："
+    print "长度：", link_queue.get_unvisited_url_length()
+    for url in link_queue.get_unvisited_url():
+        print url
 
 
