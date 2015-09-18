@@ -38,7 +38,11 @@ class WebSpider(object):
         #有的网站禁止爬虫，不能抓取或者抓取一定数量后封ip, 解决：伪装成浏览器进行抓取，加入headers
         headers = {'Use-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}
         request = urllib2.Request(url, headers=headers)
-        response = urllib2.urlopen(request)
+        try:
+            response = urllib2.urlopen(request)
+        except Exception, e:
+            print "urlopen有异常：", e
+            #todo log record
         print "http_status:", response.getcode()
         print "实际获取网页源码的url:", response.geturl()
         self.protocol = response.geturl().split(':')[0]
@@ -139,25 +143,33 @@ class WebSpider(object):
             output_dir = config.get("spider", "output_directory")
             output_dir = output_dir.split('/')[1]
             output_path = lambda p: os.path.abspath(os.path.join(os.path.dirname(__file__), output_dir, p))
-            #新建目录存放爬取的图片
-            child_dir = url.strip().split('//')[1]
-            print "想要新建的目录：", child_dir
-            output_sec_dir = output_path(child_dir) #/Users/will/Android/Python/good_coder/output/www.baidu.com
-            print output_sec_dir
-            if not os.path.exists(output_sec_dir):
-                os.mkdir(output_sec_dir)
-                print "新建文件夹~"
-            file_name = file_name.replace(':', "")
-            file_name = file_name.replace('/', "_")
-            filename = os.path.join(output_sec_dir, file_name)
+            # #新建目录存放爬取的图片
+            # child_dir = url.strip().split('//')[1]
+            # if '/' in child_dir:
+            #     child_dir = child_dir.split('/')[0]
+            # print "想要新建的目录：", child_dir
+            # output_sec_dir = output_path(child_dir) #/Users/will/Android/Python/good_coder/output/www.baidu.com
+            # print output_sec_dir
+            # if not os.path.exists(output_sec_dir):
+            #     os.mkdir(output_sec_dir)
+            #     print "新建文件夹~"
+            special_str = "\/:*?<>|"
+            print "特殊字符长度为：",len(special_str) #8
+            for s in special_str:
+                if s == ':':
+                    file_name = file_name.replace(s, "")
+                else:
+                    file_name = file_name.replace(s, "_")
+            escaped_filename = os.path.join(output_dir, file_name)
+            # filename = os.path.join(output_sec_dir, file_name)
             # print "当前路径:", os.path.dirname(__file__) #D:/Python/GoodCoder
-            if not os.path.exists(filename):
-                print filename
+            if not os.path.exists(escaped_filename):
+                print escaped_filename
                 print img_url
                 #下载文件
-                urllib.urlretrieve(img_url, filename)
+                urllib.urlretrieve(img_url, escaped_filename)
             else:
-                print "已经存在了~", filename
+                print "已经存在了~", escaped_filename
             CRAWL_INTERVAL = config.get("spider", "crawl_interval")
             time.sleep(float(CRAWL_INTERVAL))
 
@@ -332,21 +344,22 @@ if __name__ == "__main__":
     # for url in link_queue.get_unvisited_url():
     #     print url
     # while link_queue.get_unvisited_url_length() != 0:
-    link_queue.pop_unvisited_url()
-    link_queue.pop_unvisited_url()
+    # link_queue.pop_unvisited_url()
+    # link_queue.pop_unvisited_url()
     # for proc_url in link_queue.get_unvisited_url():
-    for i in range(1, 4):
+    for i in range(1, 30):
          proc_url = link_queue.pop_unvisited_url()
          print "第", i, "次", "处理的url:", proc_url
-          #如果为https请求就再请求一次
-         count = 1
-         while True:
-            html = web_spider.get_page_source(proc_url)
-            print "till now, total request times:", count, "times"
-
-            if not web_spider.is_https():
-                break
-            count += 1
+         html = web_spider.get_page_source(proc_url)
+         #  #如果为https请求就再请求一次
+         # count = 1
+         # while True:
+         #    html = web_spider.get_page_source(proc_url)
+         #    print "till now, total request times:", count, "times"
+         #
+         #    if not web_spider.is_https():
+         #        break
+         #    count += 1
          #获取符合条件的图片
          img_list = web_spider.get_img_list(str(html))
          web_spider.download_img(proc_url, img_list)
